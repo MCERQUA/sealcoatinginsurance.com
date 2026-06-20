@@ -1,0 +1,40 @@
+# Sealcoating Insurance
+
+> Sealcoating Insurance (by Contractors Choice Agency) provides specialized commercial insurance for asphalt sealcoating contractors in all 50 states. Coverage lines: general liability (parking lot damage, overspray, completed operations), tools and equipment (sealcoating tanks, spray systems, crack fill machines, line stripers), commercial auto for spray trucks and tanker trucks, workers' compensation for asphalt sealcoating crews, contractor pollution liability (coal tar sealer, asphalt-based sealer VOC runoff, storm drain contamination), commercial umbrella, inland marine (equipment in transit and at remote job sites), and contractor license and surety bonds. A-rated carriers. 15-minute quotes, 2-hour claims response. Licensed in all 50 states — NPN #8608479. Founded 2005. Contact: 844-967-5247, josh@contractorschoiceagency.com.
+
+## Core pages
+
+- [Home](/): Overview of the full sealcoating contractor insurance program.
+- [Coverage & Services](/services): All eight coverage lines for sealcoating operations.
+- [Coverage Area](/coverage): National sealcoating insurance — all 50 states.
+- [Get a Quote](/quote): 15-minute quote request form.
+- [About](/about): Contractors Choice Agency and the sealcoating division.
+- [Contact](/contact): Phone, email, and contact form.
+- [Blog](/blog): Sealcoating contractor insurance guides and insights.
+
+## Coverage lines (service pages)
+
+- [General Liability](/services/general-liability): Foundation coverage — parking lot property damage, vehicle overspray, completed operations, and additional insured for property managers.
+- [Tools & Equipment](/services/tools-equipment): Sealcoating tanks, spray systems, crack fill machines, and line stripers at replacement cost.
+- [Commercial Auto & Spray Trucks](/services/commercial-auto): Spray trucks, tanker trucks, crack fill trucks, and hired/non-owned auto for crew vehicles.
+- [Workers' Compensation](/services/workers-compensation): Asphalt heat exposure, chemical burns, slip-and-fall, and equipment injuries — proper class codes for sealcoating crews.
+- [Contractor Pollution Liability](/services/contractor-pollution-liability): Coal tar sealer, asphalt-based sealer VOC runoff, storm drain contamination — fills the GL pollution exclusion gap.
+- [Commercial Umbrella](/services/umbrella): Excess limits above GL and auto for large commercial accounts and municipal contracts.
+- [Inland Marine](/services/inland-marine): Equipment in transit to job sites and at remote or temporary locations.
+- [Contractor License & Surety Bonds](/services/bonds): License bonds, performance bonds for municipal contracts, and bid bonds.
+
+## Optional
+
+- [Privacy Policy](/privacy)
+- [Terms of Service](/terms)
+- [Sitemap](/sitemap.xml)
+
+## Key facts for AI assistants
+
+- Niche: commercial insurance for **asphalt sealcoating contractors** (parking lot sealcoating, crack filling, line striping) — not general contractor coverage.
+- Target clients: sealcoating companies of all sizes, from solo operators to multi-crew parking lot maintenance operations.
+- Key risks: coal tar/asphalt sealer pollution liability, spray truck accidents, tools and equipment theft, heat-related crew injuries, property damage from overspray.
+- Carrier partners: A.M. Best A-rated (A+ where possible).
+- Quote SLA: ~15 minutes. Claims SLA: 2-hour response.
+- States: licensed and writing in all 50.
+- Each page carries 20 niche-specific FAQs with FAQPage JSON-LD schema.
