@@ -7,6 +7,8 @@ import { Footer } from "@/components/sections/Footer";
 import { FadeIn } from "@/components/animations/FadeIn";
 import { SITE } from "@/lib/site";
 import { WcSection } from "@/components/forms/WcSection";
+import { GlSection } from "@/components/forms/GlSection";
+import { buildGlExtra, glErrors, hasCoverage, GL_TRIGGER_COVERAGE, WC_COVERAGE } from "@/lib/quote/glPayload";
 import { US_STATES, QUOTE_SERVICE_TYPES, YEARS_OPTIONS, COPY } from "@/lib/content";
 import { CheckCircle2, ShieldCheck, ArrowRight, Phone, Clock, Zap, MapPin } from "lucide-react";
 
@@ -30,7 +32,10 @@ export default function QuotePage() {
   });
   const [wcFields, setWcFields] = useState<Record<string, string>>({});
   // ACORD 130 block: shown only while Workers compensation is ticked in coverage_types.
-  const wcOn = (formData.coverage_types || "").split(", ").includes("Workers compensation");
+  const wcOn = hasCoverage(formData.coverage_types || "", WC_COVERAGE);
+  // ACORD 125/126/140 block: shown only while General liability is ticked (alone or together with WC).
+  const glOn = hasCoverage(formData.coverage_types || "", GL_TRIGGER_COVERAGE);
+  const [glFields, setGlFields] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -64,7 +69,14 @@ export default function QuotePage() {
         mirror("declinedCancelled", "coverageTerminated"); mirror("ynExplain_declinedCancelled", "coverageTerminatedExplanation");
         mirror("percentSubcontractorsInsured", "subsInsuredPercent");
       }
-      const res = await fetch(WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ form_name: "quote", source: SITE.domain, ...formData, ...wc }) });
+      // General liability: canonical ACORD 125/126/140 names are added alongside the legacy ones (add-only).
+      let gl: Record<string, string> = {};
+      if (glOn) {
+        const bad = glErrors(glFields, wcOn ? wcFields : {});
+        if (bad) { setError(bad); setSubmitting(false); return; }
+        gl = buildGlExtra(fd, glFields, wcOn ? wc : {});
+      }
+      const res = await fetch(WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ form_name: "quote", source: SITE.domain, ...formData, ...gl, ...wc }) });
       // fetch() resolves on a 4xx/5xx, so the status is what says the lead was taken.
       if (!res.ok) throw new Error(String(res.status));
       setSubmitted(true);
@@ -156,10 +168,10 @@ export default function QuotePage() {
                           <h3 className="font-heading font-bold text-espresso text-sm uppercase tracking-wider">Business address</h3>
                           <p className="text-xs text-mocha/70 mt-0.5">Where your operation is based.</p>
                         </div>
-                        <div><label htmlFor="address" className={labelClass}>Street address</label><input id="address" name="address" type="text" value={formData.address} onChange={handleChange} placeholder="123 Main St, Suite 200" className={inputClass} /></div>
+                        <div><label htmlFor="address" className={labelClass}>Street address</label><input id="address" name="address" type="text" required={glOn} value={formData.address} onChange={handleChange} placeholder="123 Main St, Suite 200" className={inputClass} /></div>
                         <div className="grid sm:grid-cols-2 gap-4">
-                          <div><label htmlFor="city" className={labelClass}>City</label><input id="city" name="city" type="text" value={formData.city} onChange={handleChange} placeholder="Phoenix" className={inputClass} /></div>
-                          <div><label htmlFor="zip" className={labelClass}>ZIP code</label><input id="zip" name="zip" type="text" inputMode="numeric" pattern="[0-9]{5}(-[0-9]{4})?" value={formData.zip} onChange={handleChange} placeholder="85001" className={inputClass} /></div>
+                          <div><label htmlFor="city" className={labelClass}>City</label><input id="city" name="city" type="text" required={glOn} value={formData.city} onChange={handleChange} placeholder="Phoenix" className={inputClass} /></div>
+                          <div><label htmlFor="zip" className={labelClass}>ZIP code</label><input id="zip" name="zip" type="text" required={glOn} inputMode="numeric" pattern="[0-9]{5}(-[0-9]{4})?" value={formData.zip} onChange={handleChange} placeholder="85001" className={inputClass} /></div>
                         </div>
                       </div>
 
@@ -173,8 +185,8 @@ export default function QuotePage() {
                           <p className="text-xs text-mocha/70 mt-0.5">Your last completed 12 months. Best estimates are fine.</p>
                         </div>
                         <div className="grid sm:grid-cols-2 gap-4">
-                          <div><label htmlFor="priorGrossSales" className={labelClass}>Gross sales</label><input id="priorGrossSales" name="priorGrossSales" type="text" inputMode="numeric" value={formData.priorGrossSales} onChange={handleChange} placeholder="$1,200,000" className={inputClass} /></div>
-                          <div><label htmlFor="priorSubcontractorExpenses" className={labelClass}>Subcontractor expenses</label><input id="priorSubcontractorExpenses" name="priorSubcontractorExpenses" type="text" inputMode="numeric" value={formData.priorSubcontractorExpenses} onChange={handleChange} placeholder="$250,000" className={inputClass} /></div>
+                          <div><label htmlFor="priorGrossSales" className={labelClass}>Gross sales</label><input id="priorGrossSales" name="priorGrossSales" type="text" inputMode="numeric" required={glOn} value={formData.priorGrossSales} onChange={handleChange} placeholder="$1,200,000" className={inputClass} /></div>
+                          <div><label htmlFor="priorSubcontractorExpenses" className={labelClass}>Subcontractor expenses</label><input id="priorSubcontractorExpenses" name="priorSubcontractorExpenses" type="text" inputMode="numeric" required={glOn} value={formData.priorSubcontractorExpenses} onChange={handleChange} placeholder="$250,000" className={inputClass} /></div>
                         </div>
                         <div className="grid sm:grid-cols-2 gap-4">
                           <div><label htmlFor="priorEmployeeCount" className={labelClass}>Employee count</label><input id="priorEmployeeCount" name="priorEmployeeCount" type="text" inputMode="numeric" value={formData.priorEmployeeCount} onChange={handleChange} placeholder="8" className={inputClass} /></div>
@@ -232,7 +244,7 @@ export default function QuotePage() {
                       </div>
                       <div>
                         <label className={labelClass}>Description of business</label>
-                        <textarea name="business_description" rows={3} value={formData.business_description} onChange={(e) => setFormData({ ...formData, business_description: e.target.value })} className={inputClass} />
+                        <textarea name="business_description" rows={3} required={glOn} value={formData.business_description} onChange={(e) => setFormData({ ...formData, business_description: e.target.value })} className={inputClass} />
                       </div>
                       <div className={wcOn ? "hidden" : undefined}>
                         <label className={labelClass}>Class code 1 (+ % of operations)</label>
@@ -276,6 +288,7 @@ export default function QuotePage() {
                       </div>
 
                       {wcOn && <WcSection inputClass={inputClass} labelClass={labelClass} onChange={setWcFields} />}
+                      {glOn && <GlSection inputClass={inputClass} labelClass={labelClass} wcOn={wcOn} wcValues={wcFields} onChange={setGlFields} />}
 
 
                       {error && <p className="text-red-600 text-sm font-medium">{error}</p>}
