@@ -6,6 +6,7 @@ import { Navbar } from "@/components/sections/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { FadeIn } from "@/components/animations/FadeIn";
 import { SITE } from "@/lib/site";
+import { WcSection } from "@/components/forms/WcSection";
 import { US_STATES, QUOTE_SERVICE_TYPES, YEARS_OPTIONS, COPY } from "@/lib/content";
 import { CheckCircle2, ShieldCheck, ArrowRight, Phone, Clock, Zap, MapPin } from "lucide-react";
 
@@ -27,6 +28,9 @@ export default function QuotePage() {
     subsHaveInsurance: "", subsInsuredPercent: "", needUninsuredSubCoverage: "",
     coverage_types: "", year_business_started: "", business_description: "", class_code_1: "", class_code_2: "", class_code_3: "", class_code_4: "", class_code_5: "", residential_vs_commercial: "", new_vs_existing_construction: "", largest_projects: "", prior_carrier_name: "", prior_policy_expiration: "",
   });
+  const [wcFields, setWcFields] = useState<Record<string, string>>({});
+  // ACORD 130 block: shown only while Workers compensation is ticked in coverage_types.
+  const wcOn = (formData.coverage_types || "").split(", ").includes("Workers compensation");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -41,7 +45,26 @@ export default function QuotePage() {
     setSubmitting(true);
     setError("");
     try {
-      const res = await fetch(WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ form_name: "quote", source: SITE.domain, ...formData }) });
+      // Existing field names are untouched. For WC the ACORD 130 names are added alongside, and the
+      // legacy values are mirrored onto the names the 130 mapper reads (add-only).
+      const wc: Record<string, string> = wcOn ? { ...wcFields } : {};
+      const fd = formData as Record<string, string>;
+      if (wcOn) {
+        const mirror = (to: string, from: string) => { if (!wc[to] && !fd[to] && (wc[from] || fd[from])) wc[to] = wc[from] || fd[from]; };
+        for (let n = 1; n <= 5; n++) {
+          const legacy = fd[`class_code_${n}`], donor = wc[`classCode${n}`];
+          if (donor && !legacy) wc[`class_code_${n}`] = donor;
+          if (legacy && !donor) wc[`classCode${n}`] = legacy;
+        }
+        mirror("streetAddress", "address"); mirror("businessDescription", "business_description");
+        mirror("yearBusinessStarted", "year_business_started"); mirror("residentialVsCommercial", "residential_vs_commercial");
+        mirror("newVsExistingConstruction", "new_vs_existing_construction"); mirror("largestProjects", "largest_projects");
+        mirror("priorCarrierName", "prior_carrier_name"); mirror("priorPolicyExpiration", "prior_policy_expiration");
+        mirror("priorExperienceMod", "experienceMod"); mirror("desiredEffectiveDate", "coverageStart");
+        mirror("declinedCancelled", "coverageTerminated"); mirror("ynExplain_declinedCancelled", "coverageTerminatedExplanation");
+        mirror("percentSubcontractorsInsured", "subsInsuredPercent");
+      }
+      const res = await fetch(WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ form_name: "quote", source: SITE.domain, ...formData, ...wc }) });
       // fetch() resolves on a 4xx/5xx, so the status is what says the lead was taken.
       if (!res.ok) throw new Error(String(res.status));
       setSubmitted(true);
@@ -211,23 +234,23 @@ export default function QuotePage() {
                         <label className={labelClass}>Description of business</label>
                         <textarea name="business_description" rows={3} value={formData.business_description} onChange={(e) => setFormData({ ...formData, business_description: e.target.value })} className={inputClass} />
                       </div>
-                      <div>
+                      <div className={wcOn ? "hidden" : undefined}>
                         <label className={labelClass}>Class code 1 (+ % of operations)</label>
                         <input type="text" name="class_code_1" value={formData.class_code_1} onChange={(e) => setFormData({ ...formData, class_code_1: e.target.value })} className={inputClass} />
                       </div>
-                      <div>
+                      <div className={wcOn ? "hidden" : undefined}>
                         <label className={labelClass}>Class code 2 (+ % of operations)</label>
                         <input type="text" name="class_code_2" value={formData.class_code_2} onChange={(e) => setFormData({ ...formData, class_code_2: e.target.value })} className={inputClass} />
                       </div>
-                      <div>
+                      <div className={wcOn ? "hidden" : undefined}>
                         <label className={labelClass}>Class code 3 (+ % of operations)</label>
                         <input type="text" name="class_code_3" value={formData.class_code_3} onChange={(e) => setFormData({ ...formData, class_code_3: e.target.value })} className={inputClass} />
                       </div>
-                      <div>
+                      <div className={wcOn ? "hidden" : undefined}>
                         <label className={labelClass}>Class code 4 (+ % of operations)</label>
                         <input type="text" name="class_code_4" value={formData.class_code_4} onChange={(e) => setFormData({ ...formData, class_code_4: e.target.value })} className={inputClass} />
                       </div>
-                      <div>
+                      <div className={wcOn ? "hidden" : undefined}>
                         <label className={labelClass}>Class code 5 (+ % of operations)</label>
                         <input type="text" name="class_code_5" value={formData.class_code_5} onChange={(e) => setFormData({ ...formData, class_code_5: e.target.value })} className={inputClass} />
                       </div>
@@ -251,6 +274,8 @@ export default function QuotePage() {
                         <label className={labelClass}>Prior policy expiration date</label>
                         <input type="date" name="prior_policy_expiration" value={formData.prior_policy_expiration} onChange={(e) => setFormData({ ...formData, prior_policy_expiration: e.target.value })} className={inputClass} />
                       </div>
+
+                      {wcOn && <WcSection inputClass={inputClass} labelClass={labelClass} onChange={setWcFields} />}
 
 
                       {error && <p className="text-red-600 text-sm font-medium">{error}</p>}
