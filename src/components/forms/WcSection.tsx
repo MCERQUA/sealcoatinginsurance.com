@@ -188,6 +188,7 @@ export function WcSection({ inputClass, labelClass, onChange }: Props) {
         <div key={k} className="space-y-3">
           {ynRow(`yn_${k}`, label)}
           {explain && g(`yn_${k}`) === "Yes" && area(`ynExplain_${k}`, "Please explain (brief)")}
+          {k === "outOfStateTravel" && g("yn_outOfStateTravel") === "Yes" && (<>{txt("travelStates", "Which other states do employees travel to or work in? (up to 10 states, two-letter codes)", { req: true, max: 40, ph: "AZ, NM, NV" })}<p className="text-xs opacity-70">List up to 10 states here. If more, list the extra states in the explanation box above.</p></>)}
           {k === "workFromHome" && g("yn_workFromHome") === "Yes" && txt("workFromHomeCount", "How many employees work from home?", { req: true, mode: "numeric" })}
         </div>
       ))}
