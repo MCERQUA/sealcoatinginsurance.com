@@ -288,7 +288,10 @@ export default function QuotePage() {
                       </div>
 
                       {wcOn && <WcSection inputClass={inputClass} labelClass={labelClass} onChange={setWcFields} />}
-                      {glOn && <GlSection inputClass={inputClass} labelClass={labelClass} wcOn={wcOn} wcValues={wcFields} onChange={setGlFields} />}
+                      {/* Always rendered so the full ACORD 125/126/140 yn_* set is in the served static HTML; hidden and disabled (not validated, not submitted) until General liability is picked. */}
+                      <fieldset disabled={!glOn} hidden={!glOn} className="border-0 p-0 m-0 min-w-0" data-gl-wrapper>
+                        <GlSection inputClass={inputClass} labelClass={labelClass} wcOn={wcOn} wcValues={wcFields} onChange={setGlFields} />
+                      </fieldset>
 
 
                       {error && <p className="text-red-600 text-sm font-medium">{error}</p>}
